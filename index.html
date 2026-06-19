@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>LIFE RPG — slllr</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --border: #1e1e2e;
+    --accent: #7c3aed;
+    --accent2: #a855f7;
+    --glow: rgba(124,58,237,0.18);
+    --text: #e2e0f0;
+    --muted: #6b6880;
+    --green: #22d3a0;
+    --red: #f87171;
+    --gold: #fbbf24;
+    --mono: 'Space Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 24px 16px 80px;
+    padding-top: max(24px, env(safe-area-inset-top));
+    padding-bottom: max(80px, env(safe-area-inset-bottom) + 70px);
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 20px;
+  }
+  .player-name {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .player-title {
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #a855f7, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .level-badge {
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 8px 14px;
+    text-align: center;
+  }
+  .level-num {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--accent2);
+    line-height: 1;
+  }
+  .level-label {
+    font-size: 9px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  /* XP BAR */
+  .xp-section {
+    margin-bottom: 28px;
+  }
+  .xp-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  .xp-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  /* STATS GRID */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .stat-card:hover { border-color: var(--accent); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 10px 10px 0 0;
+  }
+  .stat-card.prod::before { background: #a855f7; }
+  .stat-card.media::before { background: #22d3a0; }
+  .stat-card.body::before { background: #f59e0b; }
+  .stat-card.mind::before { background: #60a5fa; }
+
+  .stat-name {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+  }
+  .stat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+    min-width: 28px;
+  }
+  .stat-card.prod .stat-val { color: #a855f7; }
+  .stat-card.media .stat-val { color: #22d3a0; }
+  .stat-card.body .stat-val { color: #f59e0b; }
+  .stat-card.mind .stat-val { color: #60a5fa; }
+
+  .stat-bar-wrap {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .stat-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+  .stat-card.prod .stat-bar { background: #a855f7; }
+  .stat-card.media .stat-bar { background: #22d3a0; }
+  .stat-card.body .stat-bar { background: #f59e0b; }
+  .stat-card.mind .stat-bar { background: #60a5fa; }
+
+  .stat-plus {
+    font-family: var(--mono);
+    font-size: 16px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.2s;
+    user-select: none;
+    padding: 0 2px;
+  }
+  .stat-plus:hover { color: var(--accent2); }
+
+  /* ACTIVE QUEST */
+  .quest-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .quest-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at top right, var(--glow), transparent 70%);
+    pointer-events: none;
+  }
+  .quest-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(124,58,237,0.15);
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--accent2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .quest-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+  .quest-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .quest-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .quest-reward {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .reward-chip {
+    background: rgba(251,191,36,0.1);
+    border: 1px solid rgba(251,191,36,0.25);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--gold);
+    font-family: var(--mono);
+  }
+
+  /* TASKS */
+  .tasks-section { margin-bottom: 28px; }
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s, opacity 0.3s;
+  }
+  .task-item:hover { border-color: var(--accent); }
+  .task-item.done {
+    opacity: 0.4;
+    border-color: var(--border);
+  }
+  .task-check {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .task-item.done .task-check {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .checkmark {
+    display: none;
+    width: 10px; height: 8px;
+  }
+  .task-item.done .checkmark { display: block; }
+  .task-body { flex: 1; }
+  .task-name {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 3px;
+    line-height: 1.3;
+  }
+  .task-item.done .task-name { text-decoration: line-through; }
+  .task-meta {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  .task-xp {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent2);
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  /* BOSS FIGHT */
+  .boss-card {
+    background: linear-gradient(135deg, #1a0a0a, #12121a);
+    border: 1px solid #3b1a1a;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 28px;
+  }
+  .boss-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(248,113,113,0.1);
+    border: 1px solid rgba(248,113,113,0.25);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 10px;
+    font-family: var(--mono);
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+  .boss-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--red);
+    margin-bottom: 6px;
+  }
+  .boss-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  .boss-hp {
+    margin-bottom: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+    display: flex;
+    justify-content: space-between;
+  }
+  .boss-bar {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .boss-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--red), #f97316);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  /* SAVE LOG */
+  .log-section { margin-bottom: 20px; }
+  .log-entry {
+    padding: 10px 14px;
+    border-left: 2px solid var(--border);
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+    line-height: 1.5;
+  }
+  .log-entry.today {
+    border-left-color: var(--green);
+    color: var(--text);
+  }
+  .log-time { color: var(--accent2); margin-right: 8px; }
+
+  /* ADD TASK */
+  .add-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .add-btn:hover { border-color: var(--accent); color: var(--accent2); }
+
+  /* INPUT */
+  .input-wrap {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .input-wrap.open { display: flex; }
+  .task-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    width: 100%;
+  }
+  .task-input::placeholder { color: var(--muted); }
+  .input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .skill-select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 8px;
+    flex: 1;
+    outline: none;
+  }
+  .confirm-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .confirm-btn:hover { background: var(--accent2); }
+
+  /* SAVE SECTION */
+  .save-section {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+  }
+  .save-btn {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+  .save-btn:hover { border-color: var(--accent); color: var(--accent2); }
+  .save-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .save-btn.primary:hover { background: var(--accent2); }
+
+  /* NOTIFICATION */
+  .notif {
+    position: fixed;
+    top: 20px; right: 20px;
+    background: var(--surface);
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--green);
+    font-family: var(--mono);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .notif.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="player-name">player_01</div>
+    <div class="player-title">slllr</div>
+  </div>
+  <div class="level-badge">
+    <div class="level-num" id="levelNum">12</div>
+    <div class="level-label">Level</div>
+  </div>
+</div>
+
+<div class="xp-section">
+  <div class="xp-header">
+    <span>XP</span>
+    <span id="xpText">340 / 500</span>
+  </div>
+  <div class="xp-bar">
+    <div class="xp-fill" id="xpFill" style="width: 68%"></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="section-label">Навыки персонажа</div>
+<div class="stats-grid">
+  <div class="stat-card prod" onclick="addStat('prod')">
+    <div class="stat-name">Продакшн</div>
+    <div class="stat-row">
+      <div class="stat-val" id="stat-prod">72</div>
+      <div class="stat-bar-wrap">
+        <div class="stat-bar" id="bar-prod" style="width:72%"></div>
+      </div>
+      <div class="stat-plus">+</div>
+    </div>
+  </div>
+  <div class="stat-card media" onclick="addStat('media')">
+    <div class="stat-name">Медиа</div>
+    <div class="stat-row">
+      <div class="stat-val" id="stat-media">28</div>
+      <div class="stat-bar-wrap">
+        <div class="stat-bar" id="bar-media" style="width:28%"></div>
+      </div>
+      <div class="stat-plus">+</div>
+    </div>
+  </div>
+  <div class="stat-card body" onclick="addStat('body')">
+    <div class="stat-name">Тело</div>
+    <div class="stat-row">
+      <div class="stat-val" id="stat-body">44</div>
+      <div class="stat-bar-wrap">
+        <div class="stat-bar" id="bar-body" style="width:44%"></div>
+      </div>
+      <div class="stat-plus">+</div>
+    </div>
+  </div>
+  <div class="stat-card mind" onclick="addStat('mind')">
+    <div class="stat-name">Голова</div>
+    <div class="stat-row">
+      <div class="stat-val" id="stat-mind">61</div>
+      <div class="stat-bar-wrap">
+        <div class="stat-bar" id="bar-mind" style="width:61%"></div>
+      </div>
+      <div class="stat-plus">+</div>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVE QUEST -->
+<div class="section-label">Активный квест</div>
+<div class="quest-card">
+  <div class="quest-tag"><div class="quest-dot"></div> Глава II — Привлечение</div>
+  <div class="quest-title">Первая аудитория</div>
+  <div class="quest-desc">Снять 3 рилса о процессе создания — не о результате, а о пути. Показать себя, а не только музыку. Выложить за неделю.</div>
+  <div class="quest-reward">
+    <div class="reward-chip">+80 XP</div>
+    <div class="reward-chip">+12 Медиа</div>
+    <div class="reward-chip">РАЗБЛОКИРУЕТ: Фаза Связи</div>
+  </div>
+</div>
+
+<!-- BOSS -->
+<div class="boss-card">
+  <div class="boss-tag">⚔ Boss Fight</div>
+  <div class="boss-title">Страх публичности</div>
+  <div class="boss-desc">Блокирует переход в Фазу Связи. Единственный способ победить — урон действием. Каждый выложенный контент снимает HP.</div>
+  <div class="boss-hp">
+    <span>HP Boss</span>
+    <span id="bossHpText">73 / 100</span>
+  </div>
+  <div class="boss-bar">
+    <div class="boss-fill" id="bossFill" style="width:73%"></div>
+  </div>
+</div>
+
+<!-- DAILY TASKS -->
+<div class="tasks-section">
+  <div class="section-label">Задачи дня</div>
+  <div id="taskList"></div>
+  <button class="add-btn" onclick="toggleInput()">+ Добавить задачу</button>
+  <div class="input-wrap" id="inputWrap">
+    <input class="task-input" id="taskInput" placeholder="Название задачи..." onkeydown="handleKey(event)">
+    <div class="input-row">
+      <select class="skill-select" id="skillSelect">
+        <option value="prod">Продакшн +XP</option>
+        <option value="media">Медиа +XP</option>
+        <option value="body">Тело +XP</option>
+        <option value="mind">Голова +XP</option>
+      </select>
+      <button class="confirm-btn" onclick="addTask()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE LOG -->
+<div class="log-section">
+  <div class="section-label">Сохранения</div>
+  <div id="logList">
+    <div class="log-entry today"><span class="log-time">сейчас</span>Сессия начата</div>
+  </div>
+</div>
+
+<div class="save-section">
+  <button class="save-btn" onclick="endDay()">💾 Итог дня</button>
+  <button class="save-btn primary" onclick="completeQuest()">⚡ Сдать квест</button>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+const STATE_KEY = 'liferpg_v1';
+
+// ---- Telegram WebApp init ----
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) {
+  tg.ready();
+  tg.expand();
+  try { tg.setHeaderColor('#0a0a0f'); } catch(e) {}
+  try { tg.setBackgroundColor('#0a0a0f'); } catch(e) {}
+}
+
+function haptic(style) {
+  if (!tg || !tg.HapticFeedback) return;
+  try {
+    if (style === 'success' || style === 'error' || style === 'warning') {
+      tg.HapticFeedback.notificationOccurred(style);
+    } else {
+      tg.HapticFeedback.impactOccurred(style || 'light');
+    }
+  } catch(e) {}
+}
+
+let state = {
+  level: 12,
+  xp: 340,
+  xpMax: 500,
+  stats: { prod: 72, media: 28, body: 44, mind: 61 },
+  tasks: [
+    { id: 1, name: 'Открыть Ableton и сделать хотя бы 1 loop', skill: 'prod', xp: 15, done: false },
+    { id: 2, name: 'Снять 1 видео процесса (даже 30 секунд)', skill: 'media', xp: 20, done: false },
+    { id: 3, name: 'Выпить воды и подвигаться 15 минут', skill: 'body', xp: 10, done: false },
+  ],
+  bossHp: 73,
+  log: [],
+  nextId: 4,
+};
+
+// Use Telegram CloudStorage if available (syncs across devices via Telegram),
+// otherwise fall back to localStorage.
+function loadState() {
+  if (tg && tg.CloudStorage) {
+    tg.CloudStorage.getItem(STATE_KEY, (err, value) => {
+      if (!err && value) {
+        try { state = { ...state, ...JSON.parse(value) }; } catch(e) {}
+      }
+      render();
+    });
+  } else {
+    try {
+      const saved = localStorage.getItem(STATE_KEY);
+      if (saved) state = { ...state, ...JSON.parse(saved) };
+    } catch(e) {}
+  }
+}
+
+function saveState() {
+  const json = JSON.stringify(state);
+  if (tg && tg.CloudStorage) {
+    tg.CloudStorage.setItem(STATE_KEY, json, () => {});
+  }
+  try { localStorage.setItem(STATE_KEY, json); } catch(e) {}
+}
+
+function notify(msg) {
+  const n = document.getElementById('notif');
+  n.textContent = msg;
+  n.classList.add('show');
+  setTimeout(() => n.classList.remove('show'), 2500);
+}
+
+function render() {
+  // Level & XP
+  document.getElementById('levelNum').textContent = state.level;
+  document.getElementById('xpText').textContent = `${state.xp} / ${state.xpMax}`;
+  document.getElementById('xpFill').style.width = `${(state.xp / state.xpMax) * 100}%`;
+
+  // Stats
+  ['prod','media','body','mind'].forEach(s => {
+    const val = Math.min(100, state.stats[s]);
+    document.getElementById(`stat-${s}`).textContent = val;
+    document.getElementById(`bar-${s}`).style.width = val + '%';
+  });
+
+  // Boss
+  document.getElementById('bossHpText').textContent = `${state.bossHp} / 100`;
+  document.getElementById('bossFill').style.width = state.bossHp + '%';
+
+  // Tasks
+  const list = document.getElementById('taskList');
+  list.innerHTML = '';
+  state.tasks.forEach(task => {
+    const div = document.createElement('div');
+    div.className = 'task-item' + (task.done ? ' done' : '');
+    div.onclick = () => toggleTask(task.id);
+    const skillColors = { prod: '#a855f7', media: '#22d3a0', body: '#f59e0b', mind: '#60a5fa' };
+    div.innerHTML = `
+      <div class="task-check">
+        <svg class="checkmark" viewBox="0 0 10 8" fill="none">
+          <path d="M1 4l3 3 5-6" stroke="#0a0a0f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="task-body">
+        <div class="task-name">${task.name}</div>
+        <div class="task-meta" style="color:${skillColors[task.skill]}">${task.skill.toUpperCase()}</div>
+      </div>
+      <div class="task-xp">+${task.xp}xp</div>
+    `;
+    list.appendChild(div);
+  });
+
+  // Log
+  const logEl = document.getElementById('logList');
+  const entries = [...state.log].reverse().slice(0, 5);
+  logEl.innerHTML = entries.map(e =>
+    `<div class="log-entry today"><span class="log-time">${e.time}</span>${e.text}</div>`
+  ).join('') || '<div class="log-entry"><span class="log-time">—</span>Нет записей</div>';
+}
+
+function addLog(text) {
+  const now = new Date();
+  const time = now.getHours() + ':' + String(now.getMinutes()).padStart(2,'0');
+  state.log.push({ time, text });
+  if (state.log.length > 20) state.log.shift();
+}
+
+function toggleTask(id) {
+  const task = state.tasks.find(t => t.id === id);
+  if (!task) return;
+  if (task.done) {
+    task.done = false;
+    state.xp = Math.max(0, state.xp - task.xp);
+    state.stats[task.skill] = Math.max(0, state.stats[task.skill] - 1);
+    addLog(`Отменено: ${task.name}`);
+    haptic('light');
+  } else {
+    task.done = true;
+    gainXP(task.xp, task.skill);
+    haptic('success');
+    if (task.skill === 'media') {
+      state.bossHp = Math.max(0, state.bossHp - 8);
+      notify(`⚔ Удар по боссу! HP: ${state.bossHp}`);
+    } else {
+      notify(`+${task.xp} XP — ${task.skill.toUpperCase()} прокачан`);
+    }
+    addLog(`✓ ${task.name} (+${task.xp}xp)`);
+  }
+  saveState();
+  render();
+}
+
+function gainXP(amount, skill) {
+  state.xp += amount;
+  state.stats[skill] = Math.min(100, state.stats[skill] + 2);
+  while (state.xp >= state.xpMax) {
+    state.xp -= state.xpMax;
+    state.level++;
+    state.xpMax = Math.round(state.xpMax * 1.2);
+    notify(`🎉 LEVEL UP! Ты ${state.level} уровня`);
+    addLog(`🎉 LEVEL UP → ${state.level}`);
+    haptic('warning');
+  }
+}
+
+function addStat(stat) {
+  // visual feedback only on card click (not +)
+}
+
+function toggleInput() {
+  const wrap = document.getElementById('inputWrap');
+  wrap.classList.toggle('open');
+  if (wrap.classList.contains('open')) document.getElementById('taskInput').focus();
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter') addTask();
+  if (e.key === 'Escape') toggleInput();
+}
+
+function addTask() {
+  const input = document.getElementById('taskInput');
+  const skill = document.getElementById('skillSelect').value;
+  const name = input.value.trim();
+  if (!name) return;
+  const xpMap = { prod: 15, media: 20, body: 10, mind: 12 };
+  state.tasks.push({ id: state.nextId++, name, skill, xp: xpMap[skill], done: false });
+  input.value = '';
+  document.getElementById('inputWrap').classList.remove('open');
+  addLog(`Квест добавлен: ${name}`);
+  saveState();
+  render();
+  notify('Задача добавлена');
+}
+
+function endDay() {
+  const done = state.tasks.filter(t => t.done).length;
+  const total = state.tasks.length;
+  addLog(`💾 Итог дня: ${done}/${total} задач выполнено`);
+  // Reset daily tasks keeping undone
+  state.tasks = state.tasks.filter(t => !t.done);
+  saveState();
+  render();
+  notify(`День сохранён. ${done}/${total} выполнено.`);
+}
+
+function completeQuest() {
+  if (state.tasks.filter(t => t.done).length < 1) {
+    notify('Сначала выполни хотя бы одну задачу');
+    haptic('error');
+    return;
+  }
+  gainXP(80, 'media');
+  state.bossHp = Math.max(0, state.bossHp - 15);
+  addLog('⚡ КВЕСТ СДАН: Первая аудитория');
+  saveState();
+  render();
+  haptic('success');
+  notify('⚡ КВЕСТ СДАН! +80 XP, Медиа прокачан');
+}
+
+loadState();
+if (!tg || !tg.CloudStorage) render();
+</script>
+</body>
+</html>
