@@ -567,7 +567,7 @@
       <div class="stat-plus">+</div>
     </div>
   </div>
-  <div class="stat-card body" onclick="addStat('body')">
+  <div class="stat-card body" onclick="addStat('health')">
     <div class="stat-name">Здоровье</div>
     <div class="stat-row">
       <div class="stat-val" id="stat-body">44</div>
@@ -625,10 +625,10 @@
     <input class="task-input" id="taskInput" placeholder="Название задачи..." onkeydown="handleKey(event)">
     <div class="input-row">
       <select class="skill-select" id="skillSelect">
-        <option value="prod">Продакшн +XP</option>
+        <option value="music">Музыка +XP</option>
         <option value="media">Медиа +XP</option>
-        <option value="body">Тело +XP</option>
-        <option value="mind">Голова +XP</option>
+        <option value="health">Здоровье +XP</option>
+        <option value="mind">Интеллект +XP</option>
       </select>
       <button class="confirm-btn" onclick="addTask()">Добавить</button>
     </div>
@@ -746,7 +746,7 @@ function render() {
     const div = document.createElement('div');
     div.className = 'task-item' + (task.done ? ' done' : '');
     div.onclick = () => toggleTask(task.id);
-    const skillColors = { prod: '#a855f7', media: '#22d3a0', body: '#f59e0b', mind: '#60a5fa' };
+    const skillColors = { music: '#a855f7', media: '#22d3a0', health: '#f59e0b', mind: '#60a5fa' };
     div.innerHTML = `
       <div class="task-check">
         <svg class="checkmark" viewBox="0 0 10 8" fill="none">
@@ -835,7 +835,7 @@ function addTask() {
   const skill = document.getElementById('skillSelect').value;
   const name = input.value.trim();
   if (!name) return;
-  const xpMap = { prod: 15, media: 20, body: 10, mind: 12 };
+  const xpMap = { music: 15, media: 20, health: 10, mind: 12 };
   state.tasks.push({ id: state.nextId++, name, skill, xp: xpMap[skill], done: false });
   input.value = '';
   document.getElementById('inputWrap').classList.remove('open');
