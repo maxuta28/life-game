@@ -784,25 +784,26 @@ function loadLocalState() {
 
 function loadState() {
   if (!hasCloudStorageSupport()) {
-    normalizeState();
-    render();
+    loadLocalState();
     return;
   }
 
   safeCloudGet(STATE_KEY, (err, value) => {
     if (err) {
+      loadLocalState();
+      return;
+    }
+    if (value === null || value === undefined || value === '') {
       normalizeState();
       render();
       return;
     }
-    if (value) {
-      try {
-        state = { ...state, ...JSON.parse(value) };
-      } catch(e) {
-        normalizeState();
-        render();
-        return;
-      }
+    try {
+      state = { ...state, ...JSON.parse(value) };
+    } catch(e) {
+      normalizeState();
+      render();
+      return;
     }
     normalizeState();
     render();
@@ -817,12 +818,12 @@ function saveState() {
   normalizeState();
   const json = JSON.stringify(state);
   if (!hasCloudStorageSupport()) {
-    // no CloudStorage available; skip save
+    saveLocalState(json);
     return;
   }
   safeCloudSet(STATE_KEY, json, (err) => {
     if (err) {
-      console.error('CloudStorage save failed', err);
+      saveLocalState(json);
     }
   });
 }
