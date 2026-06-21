@@ -323,6 +323,21 @@
     flex-shrink: 0;
     padding-top: 2px;
   }
+  .task-delete {
+    background: transparent;
+    border: none;
+    color: var(--red);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 8px;
+    margin-left: 8px;
+    align-self: flex-start;
+    transition: color 0.2s;
+  }
+  .task-delete:hover {
+    color: #ff8a8a;
+  }
 
   /* BOSS FIGHT */
   .boss-card {
@@ -686,33 +701,97 @@ let state = {
   ],
   bossHp: 91,
   log: [],
-  nextId: 4,
+  nextId: 5,
 };
 
-// Use Telegram CloudStorage if available (syncs across devices via Telegram),
-// otherwise fall back to localStorage.
-function loadState() {
-  if (tg && tg.CloudStorage) {
-    tg.CloudStorage.getItem(STATE_KEY, (err, value) => {
-      if (!err && value) {
-        try { state = { ...state, ...JSON.parse(value) }; } catch(e) {}
-      }
-      render();
-    });
-  } else {
-    try {
-      const saved = localStorage.getItem(STATE_KEY);
-      if (saved) state = { ...state, ...JSON.parse(saved) };
-    } catch(e) {}
+function ensureNextId() {
+  state.nextId = Math.max(state.nextId || 1, ...state.tasks.map(t => t.id + 1));
+}
+
+function hasCloudStorageSupport() {
+  return tg && tg.CloudStorage && typeof tg.CloudStorage.getItem === 'function' && typeof tg.CloudStorage.setItem === 'function';
+}
+
+function safeCloudGet(key, callback) {
+  if (!hasCloudStorageSupport()) {
+    callback(new Error('CloudStorage not supported'), null);
+    return;
   }
+  try {
+    tg.CloudStorage.getItem(key, (err, value) => {
+      try {
+        callback(err, value);
+      } catch(e) {
+        callback(e, null);
+      }
+    });
+  } catch(e) {
+    callback(e, null);
+  }
+}
+
+function safeCloudSet(key, value, callback) {
+  if (!hasCloudStorageSupport()) {
+    callback(new Error('CloudStorage not supported'));
+    return;
+  }
+  try {
+    tg.CloudStorage.setItem(key, value, (err) => {
+      try {
+        callback(err);
+      } catch(e) {
+        callback(e);
+      }
+    });
+  } catch(e) {
+    callback(e);
+  }
+}
+
+function loadLocalState() {
+  try {
+    const saved = localStorage.getItem(STATE_KEY);
+    if (saved) state = { ...state, ...JSON.parse(saved) };
+  } catch(e) {}
+  ensureNextId();
+  render();
+}
+
+function loadState() {
+  if (!hasCloudStorageSupport()) {
+    loadLocalState();
+    return;
+  }
+
+  safeCloudGet(STATE_KEY, (err, value) => {
+    if (err || !value) {
+      loadLocalState();
+      return;
+    }
+    try {
+      state = { ...state, ...JSON.parse(value) };
+    } catch(e) {
+      loadLocalState();
+      return;
+    }
+    ensureNextId();
+    render();
+  });
+}
+
+function saveLocalState(json) {
+  try { localStorage.setItem(STATE_KEY, json); } catch(e) {}
 }
 
 function saveState() {
   const json = JSON.stringify(state);
-  if (tg && tg.CloudStorage) {
-    tg.CloudStorage.setItem(STATE_KEY, json, () => {});
+  if (!hasCloudStorageSupport()) {
+    saveLocalState(json);
+    return;
   }
-  try { localStorage.setItem(STATE_KEY, json); } catch(e) {}
+  safeCloudSet(STATE_KEY, json, (err) => {
+    if (err) saveLocalState(json);
+  });
 }
 
 function notify(msg) {
@@ -758,6 +837,7 @@ function render() {
         <div class="task-meta" style="color:${skillColors[task.skill]}">${task.skill.toUpperCase()}</div>
       </div>
       <div class="task-xp">+${task.xp}xp</div>
+      <button class="task-delete" onclick="deleteTask(event, ${task.id})">×</button>
     `;
     list.appendChild(div);
   });
@@ -802,6 +882,18 @@ function toggleTask(id) {
   render();
 }
 
+function deleteTask(event, id) {
+  event.stopPropagation();
+  const taskIndex = state.tasks.findIndex(t => t.id === id);
+  if (taskIndex === -1) return;
+  const taskName = state.tasks[taskIndex].name;
+  state.tasks.splice(taskIndex, 1);
+  addLog(`Удалено: ${taskName}`);
+  saveState();
+  render();
+  notify('Задача удалена');
+}
+
 function gainXP(amount, skill) {
   state.xp += amount;
   state.stats[skill] = Math.min(100, state.stats[skill] + 2);
@@ -836,6 +928,7 @@ function addTask() {
   const name = input.value.trim();
   if (!name) return;
   const xpMap = { music: 15, media: 20, health: 10, mind: 12 };
+  ensureNextId();
   state.tasks.push({ id: state.nextId++, name, skill, xp: xpMap[skill], done: false });
   input.value = '';
   document.getElementById('inputWrap').classList.remove('open');
