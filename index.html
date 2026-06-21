@@ -812,6 +812,25 @@ function saveState() {
   });
 }
 
+let storageInitAttempts = 0;
+function initApp() {
+  if (!tg) {
+    render();
+    return;
+  }
+  if (hasCloudStorageSupport()) {
+    loadState();
+    return;
+  }
+  storageInitAttempts += 1;
+  if (storageInitAttempts <= 10) {
+    setTimeout(initApp, 100);
+    return;
+  }
+  // If CloudStorage never becomes available, render the UI anyway.
+  render();
+}
+
 function notify(msg) {
   const n = document.getElementById('notif');
   n.textContent = msg;
@@ -988,8 +1007,7 @@ function completeQuest() {
   notify('⚡ КВЕСТ СДАН! +80 XP, Медиа прокачан');
 }
 
-loadState();
-if (!tg || !tg.CloudStorage) render();
+initApp();
 </script>
 </body>
 </html>
