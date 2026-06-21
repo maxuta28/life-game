@@ -708,6 +708,23 @@ function ensureNextId() {
   state.nextId = Math.max(state.nextId || 1, ...state.tasks.map(t => t.id + 1));
 }
 
+function normalizeState() {
+  state.level = Math.max(1, Number(state.level) || 1);
+  state.xp = Math.max(0, Number(state.xp) || 0);
+  state.xpMax = Math.max(1, Number(state.xpMax) || 500);
+  state.bossHp = Math.min(100, Math.max(0, Number(state.bossHp) || 0));
+  state.stats = state.stats && typeof state.stats === 'object' ? state.stats : {};
+  state.stats = {
+    music: Number.isFinite(Number(state.stats.music)) ? Number(state.stats.music) : 0,
+    media: Number.isFinite(Number(state.stats.media)) ? Number(state.stats.media) : 0,
+    health: Number.isFinite(Number(state.stats.health)) ? Number(state.stats.health) : 0,
+    mind: Number.isFinite(Number(state.stats.mind)) ? Number(state.stats.mind) : 0,
+  };
+  state.tasks = Array.isArray(state.tasks) ? state.tasks : [];
+  state.log = Array.isArray(state.log) ? state.log : [];
+  ensureNextId();
+}
+
 function hasCloudStorageSupport() {
   return tg && tg.CloudStorage && typeof tg.CloudStorage.getItem === 'function' && typeof tg.CloudStorage.setItem === 'function';
 }
@@ -753,7 +770,7 @@ function loadLocalState() {
     const saved = localStorage.getItem(STATE_KEY);
     if (saved) state = { ...state, ...JSON.parse(saved) };
   } catch(e) {}
-  ensureNextId();
+  normalizeState();
   render();
 }
 
@@ -774,7 +791,7 @@ function loadState() {
       loadLocalState();
       return;
     }
-    ensureNextId();
+    normalizeState();
     render();
   });
 }
@@ -784,6 +801,7 @@ function saveLocalState(json) {
 }
 
 function saveState() {
+  normalizeState();
   const json = JSON.stringify(state);
   if (!hasCloudStorageSupport()) {
     saveLocalState(json);
@@ -802,16 +820,22 @@ function notify(msg) {
 }
 
 function render() {
+  normalizeState();
+
   // Level & XP
+  const xp = Number(state.xp) || 0;
+  const xpMax = Number(state.xpMax) || 500;
+  const xpPercent = xpMax > 0 ? Math.min(100, Math.max(0, Math.round((xp / xpMax) * 100))) : 0;
   document.getElementById('levelNum').textContent = state.level;
-  document.getElementById('xpText').textContent = `${state.xp} / ${state.xpMax}`;
-  document.getElementById('xpFill').style.width = `${(state.xp / state.xpMax) * 100}%`;
+  document.getElementById('xpText').textContent = `${xp} / ${xpMax}`;
+  document.getElementById('xpFill').style.width = `${xpPercent}%`;
 
   // Stats
   ['music','media','health','mind'].forEach(s => {
-    const val = Math.min(100, state.stats[s]);
+    const parsedValue = Number(state.stats[s]);
+    const val = Number.isFinite(parsedValue) ? Math.min(100, Math.max(0, parsedValue)) : 0;
     document.getElementById(`stat-${s}`).textContent = val;
-    document.getElementById(`bar-${s}`).style.width = val + '%';
+    document.getElementById(`bar-${s}`).style.width = `${val}%`;
   });
 
   // Boss
