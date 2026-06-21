@@ -775,7 +775,7 @@ function safeCloudSet(key, value, callback) {
 
 function loadLocalState() {
   try {
-    const saved = localStorage.getItem(STATE_KEY);
+    const saved = localStorage.getItem(STATE_KEY);  
     if (saved) state = { ...state, ...JSON.parse(saved) };
   } catch(e) {}
   normalizeState();
