@@ -139,9 +139,9 @@
     height: 2px;
     border-radius: 10px 10px 0 0;
   }
-  .stat-card.prod::before { background: #a855f7; }
+  .stat-card.music::before { background: #a855f7; }
   .stat-card.media::before { background: #22d3a0; }
-  .stat-card.body::before { background: #f59e0b; }
+  .stat-card.health::before { background: #f59e0b; }
   .stat-card.mind::before { background: #60a5fa; }
 
   .stat-name {
@@ -162,9 +162,9 @@
     font-weight: 700;
     min-width: 28px;
   }
-  .stat-card.prod .stat-val { color: #a855f7; }
+  .stat-card.music .stat-val { color: #a855f7; }
   .stat-card.media .stat-val { color: #22d3a0; }
-  .stat-card.body .stat-val { color: #f59e0b; }
+  .stat-card.health .stat-val { color: #f59e0b; }
   .stat-card.mind .stat-val { color: #60a5fa; }
 
   .stat-bar-wrap {
@@ -179,9 +179,9 @@
     border-radius: 2px;
     transition: width 0.5s ease;
   }
-  .stat-card.prod .stat-bar { background: #a855f7; }
+  .stat-card.music .stat-bar { background: #a855f7; }
   .stat-card.media .stat-bar { background: #22d3a0; }
-  .stat-card.body .stat-bar { background: #f59e0b; }
+  .stat-card.health .stat-bar { background: #f59e0b; }
   .stat-card.mind .stat-bar { background: #60a5fa; }
 
   .stat-plus {
@@ -529,7 +529,7 @@
     <div class="player-title">solller</div>
   </div>
   <div class="level-badge">
-    <div class="level-num" id="levelNum">28</div>
+    <div class="level-num" id="levelNum">01</div>
     <div class="level-label">Level</div>
   </div>
 </div>
@@ -547,12 +547,12 @@
 <!-- STATS -->
 <div class="section-label">Навыки персонажа</div>
 <div class="stats-grid">
-  <div class="stat-card prod" onclick="addStat('prod')">
+  <div class="stat-card music" onclick="addStat('music')">
     <div class="stat-name">Музыка</div>
     <div class="stat-row">
-      <div class="stat-val" id="stat-prod">72</div>
+      <div class="stat-val" id="stat-music">55</div>
       <div class="stat-bar-wrap">
-        <div class="stat-bar" id="bar-prod" style="width:72%"></div>
+        <div class="stat-bar" id="bar-music" style="width:72%"></div>
       </div>
       <div class="stat-plus">+</div>
     </div>
@@ -560,19 +560,19 @@
   <div class="stat-card media" onclick="addStat('media')">
     <div class="stat-name">Медиа</div>
     <div class="stat-row">
-      <div class="stat-val" id="stat-media">28</div>
+      <div class="stat-val" id="stat-media">3</div>
       <div class="stat-bar-wrap">
         <div class="stat-bar" id="bar-media" style="width:28%"></div>
       </div>
       <div class="stat-plus">+</div>
     </div>
   </div>
-  <div class="stat-card body" onclick="addStat('health')">
+  <div class="stat-card health" onclick="addStat('health')">
     <div class="stat-name">Здоровье</div>
     <div class="stat-row">
-      <div class="stat-val" id="stat-body">44</div>
+      <div class="stat-val" id="stat-health">61</div>
       <div class="stat-bar-wrap">
-        <div class="stat-bar" id="bar-body" style="width:44%"></div>
+        <div class="stat-bar" id="bar-health" style="width:44%"></div>
       </div>
       <div class="stat-plus">+</div>
     </div>
@@ -580,7 +580,7 @@
   <div class="stat-card mind" onclick="addStat('mind')">
     <div class="stat-name">Интеллект</div>
     <div class="stat-row">
-      <div class="stat-val" id="stat-mind">61</div>
+      <div class="stat-val" id="stat-mind">43</div>
       <div class="stat-bar-wrap">
         <div class="stat-bar" id="bar-mind" style="width:61%"></div>
       </div>
@@ -729,7 +729,7 @@ function render() {
   document.getElementById('xpFill').style.width = `${(state.xp / state.xpMax) * 100}%`;
 
   // Stats
-  ['prod','media','body','mind'].forEach(s => {
+  ['music','media','health','mind'].forEach(s => {
     const val = Math.min(100, state.stats[s]);
     document.getElementById(`stat-${s}`).textContent = val;
     document.getElementById(`bar-${s}`).style.width = val + '%';
@@ -753,7 +753,7 @@ function render() {
           <path d="M1 4l3 3 5-6" stroke="#0a0a0f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <div class="task-body">
+      <div class="task-health">
         <div class="task-name">${task.name}</div>
         <div class="task-meta" style="color:${skillColors[task.skill]}">${task.skill.toUpperCase()}</div>
       </div>
