@@ -725,17 +725,24 @@ function normalizeState() {
   ensureNextId();
 }
 
+function cloudStorage() {
+  if (!tg) return null;
+  return tg.CloudStorage || tg.cloudStorage || null;
+}
+
 function hasCloudStorageSupport() {
-  return tg && tg.CloudStorage && typeof tg.CloudStorage.getItem === 'function' && typeof tg.CloudStorage.setItem === 'function';
+  const storage = cloudStorage();
+  return storage && typeof storage.getItem === 'function' && typeof storage.setItem === 'function';
 }
 
 function safeCloudGet(key, callback) {
-  if (!hasCloudStorageSupport()) {
+  const storage = cloudStorage();
+  if (!storage) {
     callback(new Error('CloudStorage not supported'), null);
     return;
   }
   try {
-    tg.CloudStorage.getItem(key, (err, value) => {
+    storage.getItem(key, (err, value) => {
       try {
         callback(err, value);
       } catch(e) {
@@ -748,12 +755,13 @@ function safeCloudGet(key, callback) {
 }
 
 function safeCloudSet(key, value, callback) {
-  if (!hasCloudStorageSupport()) {
+  const storage = cloudStorage();
+  if (!storage) {
     callback(new Error('CloudStorage not supported'));
     return;
   }
   try {
-    tg.CloudStorage.setItem(key, value, (err) => {
+    storage.setItem(key, value, (err) => {
       try {
         callback(err);
       } catch(e) {
@@ -776,20 +784,25 @@ function loadLocalState() {
 
 function loadState() {
   if (!hasCloudStorageSupport()) {
-    loadLocalState();
+    normalizeState();
+    render();
     return;
   }
 
   safeCloudGet(STATE_KEY, (err, value) => {
-    if (err || !value) {
-      loadLocalState();
+    if (err) {
+      normalizeState();
+      render();
       return;
     }
-    try {
-      state = { ...state, ...JSON.parse(value) };
-    } catch(e) {
-      loadLocalState();
-      return;
+    if (value) {
+      try {
+        state = { ...state, ...JSON.parse(value) };
+      } catch(e) {
+        normalizeState();
+        render();
+        return;
+      }
     }
     normalizeState();
     render();
@@ -804,11 +817,13 @@ function saveState() {
   normalizeState();
   const json = JSON.stringify(state);
   if (!hasCloudStorageSupport()) {
-    saveLocalState(json);
+    // no CloudStorage available; skip save
     return;
   }
   safeCloudSet(STATE_KEY, json, (err) => {
-    if (err) saveLocalState(json);
+    if (err) {
+      console.error('CloudStorage save failed', err);
+    }
   });
 }
 
@@ -823,8 +838,8 @@ function initApp() {
     return;
   }
   storageInitAttempts += 1;
-  if (storageInitAttempts <= 10) {
-    setTimeout(initApp, 100);
+  if (storageInitAttempts <= 50) {
+    setTimeout(initApp, 200);
     return;
   }
   // If CloudStorage never becomes available, render the UI anyway.
