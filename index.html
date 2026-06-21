@@ -536,8 +536,12 @@
     transform: translateY(0);
   }
 </style>
+<style>
+  /* Hide app until JS has loaded and applied persisted state to avoid flicker */
+  body.loading { visibility: hidden; }
+</style>
 </head>
-<body>
+<body class="loading">
 
 <div class="header">
   <div>
@@ -926,6 +930,13 @@ function render() {
   logEl.innerHTML = entries.map(e =>
     `<div class="log-entry today"><span class="log-time">${e.time}</span>${e.text}</div>`
   ).join('') || '<div class="log-entry"><span class="log-time">—</span>Нет записей</div>';
+
+  // Reveal app after first successful render to avoid initial flicker
+  try {
+    if (document.body && document.body.classList.contains('loading')) {
+      document.body.classList.remove('loading');
+    }
+  } catch (e) {}
 }
 
 function addLog(text) {
