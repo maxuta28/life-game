@@ -543,6 +543,9 @@
 </head>
 <body class="loading">
 
+<!-- Telegram debug overlay -->
+<div id="tgDebug" style="position:fixed;left:10px;bottom:80px;right:10px;max-height:200px;overflow:auto;background:rgba(0,0,0,0.6);color:#fff;padding:8px;border-radius:8px;font-family:monospace;font-size:12px;z-index:9999;display:none"></div>
+
 <div class="header">
   <div>
     <div class="player-name">player_01</div>
@@ -790,6 +793,50 @@ function safeTelegramSet(key, value, callback) {
   }
 }
 
+// --- Telegram debug helpers ---
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function showTgDebug(lines) {
+  const el = document.getElementById('tgDebug');
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML = lines.map(l => '<div>' + escapeHtml(l) + '</div>').join('');
+}
+
+function probeTelegramDebug() {
+  const lines = [];
+  lines.push('window.Telegram: ' + (window.Telegram ? 'yes' : 'no'));
+  const tg = getTg();
+  lines.push('Telegram.WebApp: ' + (tg ? 'yes' : 'no'));
+  if (tg) {
+    lines.push('isVersionAtLeast available: ' + (typeof tg.isVersionAtLeast === 'function'));
+    try { lines.push('version: ' + (tg.version || 'n/a')); } catch(e) {}
+  }
+  const storage = telegramStorage();
+  lines.push('telegramStorage object: ' + (storage ? 'yes' : 'no'));
+  if (storage) {
+    lines.push('storage.getItem: ' + (typeof storage.getItem));
+    lines.push('storage.setItem: ' + (typeof storage.setItem));
+    try {
+      storage.getItem(STATE_KEY, (err, value) => {
+        const more = [];
+        more.push('getItem callback err: ' + (err ? (err.message || String(err)) : 'null'));
+        more.push('value: ' + (value === null ? 'null' : (typeof value) + ': ' + String(value).slice(0,200)));
+        showTgDebug(lines.concat(more));
+      });
+      return;
+    } catch(e) {
+      lines.push('getItem threw: ' + e.message);
+    }
+  }
+  showTgDebug(lines);
+}
+
 function loadLocalState() {
   try {
     const saved = localStorage.getItem(STATE_KEY);  
@@ -847,6 +894,7 @@ function saveState() {
 
 let storageInitAttempts = 0;
 function initApp() {
+  try { probeTelegramDebug(); } catch(e) {}
   const tg = getTg();
   if (!tg) {
     storageInitAttempts += 1;
