@@ -808,7 +808,16 @@ function showTgDebug(lines) {
   el.innerHTML = lines.map(l => '<div>' + escapeHtml(l) + '</div>').join('');
 }
 
+function isTgDebugEnabled() {
+  try {
+    const params = new URLSearchParams(location.search);
+    if (params.has('tgdebug')) return true;
+  } catch(e) {}
+  try { return localStorage.getItem('tgDebug') === '1'; } catch(e) { return false; }
+}
+
 function probeTelegramDebug() {
+  const debug = isTgDebugEnabled();
   const lines = [];
   lines.push('window.Telegram: ' + (window.Telegram ? 'yes' : 'no'));
   const tg = getTg();
@@ -827,14 +836,18 @@ function probeTelegramDebug() {
         const more = [];
         more.push('getItem callback err: ' + (err ? (err.message || String(err)) : 'null'));
         more.push('value: ' + (value === null ? 'null' : (typeof value) + ': ' + String(value).slice(0,200)));
-        showTgDebug(lines.concat(more));
+        if (debug) {
+          showTgDebug(lines.concat(more));
+        } else {
+          console.log(lines.concat(more).join('\n'));
+        }
       });
       return;
     } catch(e) {
       lines.push('getItem threw: ' + e.message);
     }
   }
-  showTgDebug(lines);
+  if (debug) showTgDebug(lines); else console.log(lines.join('\n'));
 }
 
 function loadLocalState() {
