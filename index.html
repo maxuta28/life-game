@@ -57,6 +57,7 @@
     font-size: 22px;
     font-weight: 700;
     background: linear-gradient(90deg, #a855f7, #7c3aed);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
@@ -669,15 +670,22 @@
 const STATE_KEY = 'liferpg_v1';
 
 // ---- Telegram WebApp init ----
-const tg = window.Telegram ? window.Telegram.WebApp : null;
-if (tg) {
+function getTg() {
+  return window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+}
+
+function initTelegram() {
+  const tg = getTg();
+  if (!tg) return false;
   tg.ready();
   tg.expand();
   try { tg.setHeaderColor('#0a0a0f'); } catch(e) {}
   try { tg.setBackgroundColor('#0a0a0f'); } catch(e) {}
+  return true;
 }
 
 function haptic(style) {
+  const tg = getTg();
   if (!tg || !tg.HapticFeedback) return;
   try {
     if (style === 'success' || style === 'error' || style === 'warning') {
@@ -725,20 +733,25 @@ function normalizeState() {
   ensureNextId();
 }
 
-function cloudStorage() {
+function telegramStorage() {
+  const tg = getTg();
   if (!tg) return null;
-  return tg.CloudStorage || tg.cloudStorage || null;
+  return tg.CloudStorage || tg.DeviceStorage || tg.cloudStorage || null;
 }
 
-function hasCloudStorageSupport() {
-  const storage = cloudStorage();
-  return storage && typeof storage.getItem === 'function' && typeof storage.setItem === 'function';
+function hasTelegramStorageSupport() {
+  const tg = getTg();
+  const storage = telegramStorage();
+  const versionOk = tg && typeof tg.isVersionAtLeast === 'function'
+    ? tg.isVersionAtLeast('6.9')
+    : true;
+  return versionOk && storage && typeof storage.getItem === 'function' && typeof storage.setItem === 'function';
 }
 
-function safeCloudGet(key, callback) {
-  const storage = cloudStorage();
+function safeTelegramGet(key, callback) {
+  const storage = telegramStorage();
   if (!storage) {
-    callback(new Error('CloudStorage not supported'), null);
+    callback(new Error('Telegram storage not supported'), null);
     return;
   }
   try {
@@ -754,10 +767,10 @@ function safeCloudGet(key, callback) {
   }
 }
 
-function safeCloudSet(key, value, callback) {
-  const storage = cloudStorage();
+function safeTelegramSet(key, value, callback) {
+  const storage = telegramStorage();
   if (!storage) {
-    callback(new Error('CloudStorage not supported'));
+    callback(new Error('Telegram storage not supported'));
     return;
   }
   try {
@@ -783,12 +796,12 @@ function loadLocalState() {
 }
 
 function loadState() {
-  if (!hasCloudStorageSupport()) {
+  if (!hasTelegramStorageSupport()) {
     loadLocalState();
     return;
   }
 
-  safeCloudGet(STATE_KEY, (err, value) => {
+  safeTelegramGet(STATE_KEY, (err, value) => {
     if (err) {
       loadLocalState();
       return;
@@ -817,11 +830,11 @@ function saveLocalState(json) {
 function saveState() {
   normalizeState();
   const json = JSON.stringify(state);
-  if (!hasCloudStorageSupport()) {
+  if (!hasTelegramStorageSupport()) {
     saveLocalState(json);
     return;
   }
-  safeCloudSet(STATE_KEY, json, (err) => {
+  safeTelegramSet(STATE_KEY, json, (err) => {
     if (err) {
       saveLocalState(json);
     }
@@ -830,21 +843,27 @@ function saveState() {
 
 let storageInitAttempts = 0;
 function initApp() {
+  const tg = getTg();
   if (!tg) {
-    render();
+    storageInitAttempts += 1;
+    if (storageInitAttempts <= 50) {
+      setTimeout(initApp, 200);
+      return;
+    }
+    console.warn('Telegram WebApp not found after retries; falling back to local storage.');
+    loadLocalState();
     return;
   }
-  if (hasCloudStorageSupport()) {
+
+  initTelegram();
+
+  if (hasTelegramStorageSupport()) {
     loadState();
     return;
   }
-  storageInitAttempts += 1;
-  if (storageInitAttempts <= 50) {
-    setTimeout(initApp, 200);
-    return;
-  }
-  // If CloudStorage never becomes available, render the UI anyway.
-  render();
+
+  console.warn('Telegram WebApp available but storage unsupported; falling back to local storage.');
+  loadLocalState();
 }
 
 function notify(msg) {
