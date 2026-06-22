@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Life of Solller: Simulator</title>
+<title>LIFE RPG — slllr</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Space+Mono:wght@400;700&display=swap');
@@ -57,7 +57,6 @@
     font-size: 22px;
     font-weight: 700;
     background: linear-gradient(90deg, #a855f7, #7c3aed);
-    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
@@ -140,9 +139,9 @@
     height: 2px;
     border-radius: 10px 10px 0 0;
   }
-  .stat-card.music::before { background: #a855f7; }
+  .stat-card.prod::before { background: #a855f7; }
   .stat-card.media::before { background: #22d3a0; }
-  .stat-card.health::before { background: #f59e0b; }
+  .stat-card.body::before { background: #f59e0b; }
   .stat-card.mind::before { background: #60a5fa; }
 
   .stat-name {
@@ -163,9 +162,9 @@
     font-weight: 700;
     min-width: 28px;
   }
-  .stat-card.music .stat-val { color: #a855f7; }
+  .stat-card.prod .stat-val { color: #a855f7; }
   .stat-card.media .stat-val { color: #22d3a0; }
-  .stat-card.health .stat-val { color: #f59e0b; }
+  .stat-card.body .stat-val { color: #f59e0b; }
   .stat-card.mind .stat-val { color: #60a5fa; }
 
   .stat-bar-wrap {
@@ -180,9 +179,9 @@
     border-radius: 2px;
     transition: width 0.5s ease;
   }
-  .stat-card.music .stat-bar { background: #a855f7; }
+  .stat-card.prod .stat-bar { background: #a855f7; }
   .stat-card.media .stat-bar { background: #22d3a0; }
-  .stat-card.health .stat-bar { background: #f59e0b; }
+  .stat-card.body .stat-bar { background: #f59e0b; }
   .stat-card.mind .stat-bar { background: #60a5fa; }
 
   .stat-plus {
@@ -323,21 +322,6 @@
     color: var(--accent2);
     flex-shrink: 0;
     padding-top: 2px;
-  }
-  .task-delete {
-    background: transparent;
-    border: none;
-    color: var(--red);
-    font-size: 18px;
-    line-height: 1;
-    cursor: pointer;
-    padding: 0 8px;
-    margin-left: 8px;
-    align-self: flex-start;
-    transition: color 0.2s;
-  }
-  .task-delete:hover {
-    color: #ff8a8a;
   }
 
   /* BOSS FIGHT */
@@ -536,23 +520,16 @@
     transform: translateY(0);
   }
 </style>
-<style>
-  /* Hide app until JS has loaded and applied persisted state to avoid flicker */
-  body.loading { visibility: hidden; }
-</style>
 </head>
-<body class="loading">
-
-<!-- Telegram debug overlay -->
-<div id="tgDebug" style="position:fixed;left:10px;bottom:80px;right:10px;max-height:200px;overflow:auto;background:rgba(0,0,0,0.6);color:#fff;padding:8px;border-radius:8px;font-family:monospace;font-size:12px;z-index:9999;display:none"></div>
+<body>
 
 <div class="header">
   <div>
     <div class="player-name">player_01</div>
-    <div class="player-title">solller</div>
+    <div class="player-title">slllr</div>
   </div>
   <div class="level-badge">
-    <div class="level-num" id="levelNum">01</div>
+    <div class="level-num" id="levelNum">12</div>
     <div class="level-label">Level</div>
   </div>
 </div>
@@ -560,22 +537,22 @@
 <div class="xp-section">
   <div class="xp-header">
     <span>XP</span>
-    <span id="xpText">0 / 500</span>
+    <span id="xpText">340 / 500</span>
   </div>
   <div class="xp-bar">
-    <div class="xp-fill" id="xpFill" style="width: 0%"></div>
+    <div class="xp-fill" id="xpFill" style="width: 68%"></div>
   </div>
 </div>
 
 <!-- STATS -->
 <div class="section-label">Навыки персонажа</div>
 <div class="stats-grid">
-  <div class="stat-card music" onclick="addStat('music')">
-    <div class="stat-name">Музыка</div>
+  <div class="stat-card prod" onclick="addStat('prod')">
+    <div class="stat-name">Продакшн</div>
     <div class="stat-row">
-      <div class="stat-val" id="stat-music">55</div>
+      <div class="stat-val" id="stat-prod">72</div>
       <div class="stat-bar-wrap">
-        <div class="stat-bar" id="bar-music" style="width:55%"></div>
+        <div class="stat-bar" id="bar-prod" style="width:72%"></div>
       </div>
       <div class="stat-plus">+</div>
     </div>
@@ -583,29 +560,29 @@
   <div class="stat-card media" onclick="addStat('media')">
     <div class="stat-name">Медиа</div>
     <div class="stat-row">
-      <div class="stat-val" id="stat-media">3</div>
+      <div class="stat-val" id="stat-media">28</div>
       <div class="stat-bar-wrap">
-        <div class="stat-bar" id="bar-media" style="width:3%"></div>
+        <div class="stat-bar" id="bar-media" style="width:28%"></div>
       </div>
       <div class="stat-plus">+</div>
     </div>
   </div>
-  <div class="stat-card health" onclick="addStat('health')">
-    <div class="stat-name">Здоровье</div>
+  <div class="stat-card body" onclick="addStat('body')">
+    <div class="stat-name">Тело</div>
     <div class="stat-row">
-      <div class="stat-val" id="stat-health">61</div>
+      <div class="stat-val" id="stat-body">44</div>
       <div class="stat-bar-wrap">
-        <div class="stat-bar" id="bar-health" style="width:61%"></div>
+        <div class="stat-bar" id="bar-body" style="width:44%"></div>
       </div>
       <div class="stat-plus">+</div>
     </div>
   </div>
   <div class="stat-card mind" onclick="addStat('mind')">
-    <div class="stat-name">Интеллект</div>
+    <div class="stat-name">Голова</div>
     <div class="stat-row">
-      <div class="stat-val" id="stat-mind">43</div>
+      <div class="stat-val" id="stat-mind">61</div>
       <div class="stat-bar-wrap">
-        <div class="stat-bar" id="bar-mind" style="width:43%"></div>
+        <div class="stat-bar" id="bar-mind" style="width:61%"></div>
       </div>
       <div class="stat-plus">+</div>
     </div>
@@ -648,10 +625,10 @@
     <input class="task-input" id="taskInput" placeholder="Название задачи..." onkeydown="handleKey(event)">
     <div class="input-row">
       <select class="skill-select" id="skillSelect">
-        <option value="music">Музыка +XP</option>
+        <option value="prod">Продакшн +XP</option>
         <option value="media">Медиа +XP</option>
-        <option value="health">Здоровье +XP</option>
-        <option value="mind">Интеллект +XP</option>
+        <option value="body">Тело +XP</option>
+        <option value="mind">Голова +XP</option>
       </select>
       <button class="confirm-btn" onclick="addTask()">Добавить</button>
     </div>
@@ -677,22 +654,15 @@
 const STATE_KEY = 'liferpg_v1';
 
 // ---- Telegram WebApp init ----
-function getTg() {
-  return window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-}
-
-function initTelegram() {
-  const tg = getTg();
-  if (!tg) return false;
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) {
   tg.ready();
   tg.expand();
   try { tg.setHeaderColor('#0a0a0f'); } catch(e) {}
   try { tg.setBackgroundColor('#0a0a0f'); } catch(e) {}
-  return true;
 }
 
 function haptic(style) {
-  const tg = getTg();
   if (!tg || !tg.HapticFeedback) return;
   try {
     if (style === 'success' || style === 'error' || style === 'warning') {
@@ -704,231 +674,44 @@ function haptic(style) {
 }
 
 let state = {
-  level: 1,
+  level: 12,
   xp: 340,
   xpMax: 500,
-  stats: { music: 44, media: 12, health: 56, mind: 54 },
+  stats: { prod: 72, media: 28, body: 44, mind: 61 },
   tasks: [
-    { id: 1, name: 'отмастерить трек на альбом: 2 | [R34] точен', skill: 'music', xp: 15, done: false },
-    { id: 2, name: 'отмастерить трек на альбом: 3 | sлышь дuprачёк', skill: 'music', xp: 15, done: false },
-    { id: 3, name: 'снять 1 видео процесса на риллс (до 30 секунд)', skill: 'media', xp: 20, done: false },
-    { id: 4, name: 'сделать зарядкуmachine: турбо-кнопка (5мин)', skill: 'mind', xp: 10, done: false },
+    { id: 1, name: 'Открыть Ableton и сделать хотя бы 1 loop', skill: 'prod', xp: 15, done: false },
+    { id: 2, name: 'Снять 1 видео процесса (даже 30 секунд)', skill: 'media', xp: 20, done: false },
+    { id: 3, name: 'Выпить воды и подвигаться 15 минут', skill: 'body', xp: 10, done: false },
   ],
-  bossHp: 91,
+  bossHp: 73,
   log: [],
-  nextId: 5,
+  nextId: 4,
 };
 
-function ensureNextId() {
-  state.nextId = Math.max(state.nextId || 1, ...state.tasks.map(t => t.id + 1));
-}
-
-function normalizeState() {
-  state.level = Math.max(1, Number(state.level) || 1);
-  state.xp = Math.max(0, Number(state.xp) || 0);
-  state.xpMax = Math.max(1, Number(state.xpMax) || 500);
-  state.bossHp = Math.min(100, Math.max(0, Number(state.bossHp) || 0));
-  state.stats = state.stats && typeof state.stats === 'object' ? state.stats : {};
-  state.stats = {
-    music: Number.isFinite(Number(state.stats.music)) ? Number(state.stats.music) : 0,
-    media: Number.isFinite(Number(state.stats.media)) ? Number(state.stats.media) : 0,
-    health: Number.isFinite(Number(state.stats.health)) ? Number(state.stats.health) : 0,
-    mind: Number.isFinite(Number(state.stats.mind)) ? Number(state.stats.mind) : 0,
-  };
-  state.tasks = Array.isArray(state.tasks) ? state.tasks : [];
-  state.log = Array.isArray(state.log) ? state.log : [];
-  ensureNextId();
-}
-
-function telegramStorage() {
-  const tg = getTg();
-  if (!tg) return null;
-  return tg.CloudStorage || tg.DeviceStorage || tg.cloudStorage || null;
-}
-
-function hasTelegramStorageSupport() {
-  const tg = getTg();
-  const storage = telegramStorage();
-  const versionOk = tg && typeof tg.isVersionAtLeast === 'function'
-    ? tg.isVersionAtLeast('6.9')
-    : true;
-  return versionOk && storage && typeof storage.getItem === 'function' && typeof storage.setItem === 'function';
-}
-
-function safeTelegramGet(key, callback) {
-  const storage = telegramStorage();
-  if (!storage) {
-    callback(new Error('Telegram storage not supported'), null);
-    return;
-  }
-  try {
-    storage.getItem(key, (err, value) => {
-      try {
-        callback(err, value);
-      } catch(e) {
-        callback(e, null);
-      }
-    });
-  } catch(e) {
-    callback(e, null);
-  }
-}
-
-function safeTelegramSet(key, value, callback) {
-  const storage = telegramStorage();
-  if (!storage) {
-    callback(new Error('Telegram storage not supported'));
-    return;
-  }
-  try {
-    storage.setItem(key, value, (err) => {
-      try {
-        callback(err);
-      } catch(e) {
-        callback(e);
-      }
-    });
-  } catch(e) {
-    callback(e);
-  }
-}
-
-// --- Telegram debug helpers ---
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function showTgDebug(lines) {
-  const el = document.getElementById('tgDebug');
-  if (!el) return;
-  el.style.display = 'block';
-  el.innerHTML = lines.map(l => '<div>' + escapeHtml(l) + '</div>').join('');
-}
-
-function isTgDebugEnabled() {
-  try {
-    const params = new URLSearchParams(location.search);
-    if (params.has('tgdebug')) return true;
-  } catch(e) {}
-  try { return localStorage.getItem('tgDebug') === '1'; } catch(e) { return false; }
-}
-
-function probeTelegramDebug() {
-  const debug = isTgDebugEnabled();
-  const lines = [];
-  lines.push('window.Telegram: ' + (window.Telegram ? 'yes' : 'no'));
-  const tg = getTg();
-  lines.push('Telegram.WebApp: ' + (tg ? 'yes' : 'no'));
-  if (tg) {
-    lines.push('isVersionAtLeast available: ' + (typeof tg.isVersionAtLeast === 'function'));
-    try { lines.push('version: ' + (tg.version || 'n/a')); } catch(e) {}
-  }
-  const storage = telegramStorage();
-  lines.push('telegramStorage object: ' + (storage ? 'yes' : 'no'));
-  if (storage) {
-    lines.push('storage.getItem: ' + (typeof storage.getItem));
-    lines.push('storage.setItem: ' + (typeof storage.setItem));
-    try {
-      storage.getItem(STATE_KEY, (err, value) => {
-        const more = [];
-        more.push('getItem callback err: ' + (err ? (err.message || String(err)) : 'null'));
-        more.push('value: ' + (value === null ? 'null' : (typeof value) + ': ' + String(value).slice(0,200)));
-        if (debug) {
-          showTgDebug(lines.concat(more));
-        } else {
-          console.log(lines.concat(more).join('\n'));
-        }
-      });
-      return;
-    } catch(e) {
-      lines.push('getItem threw: ' + e.message);
-    }
-  }
-  if (debug) showTgDebug(lines); else console.log(lines.join('\n'));
-}
-
-function loadLocalState() {
-  try {
-    const saved = localStorage.getItem(STATE_KEY);  
-    if (saved) state = { ...state, ...JSON.parse(saved) };
-  } catch(e) {}
-  normalizeState();
-  render();
-}
-
+// Use Telegram CloudStorage if available (syncs across devices via Telegram),
+// otherwise fall back to localStorage.
 function loadState() {
-  if (!hasTelegramStorageSupport()) {
-    loadLocalState();
-    return;
-  }
-
-  safeTelegramGet(STATE_KEY, (err, value) => {
-    if (err) {
-      loadLocalState();
-      return;
-    }
-    if (value === null || value === undefined || value === '') {
-      normalizeState();
+  if (tg && tg.CloudStorage) {
+    tg.CloudStorage.getItem(STATE_KEY, (err, value) => {
+      if (!err && value) {
+        try { state = { ...state, ...JSON.parse(value) }; } catch(e) {}
+      }
       render();
-      return;
-    }
+    });
+  } else {
     try {
-      state = { ...state, ...JSON.parse(value) };
-    } catch(e) {
-      normalizeState();
-      render();
-      return;
-    }
-    normalizeState();
-    render();
-  });
-}
-
-function saveLocalState(json) {
-  try { localStorage.setItem(STATE_KEY, json); } catch(e) {}
+      const saved = localStorage.getItem(STATE_KEY);
+      if (saved) state = { ...state, ...JSON.parse(saved) };
+    } catch(e) {}
+  }
 }
 
 function saveState() {
-  normalizeState();
   const json = JSON.stringify(state);
-  if (!hasTelegramStorageSupport()) {
-    saveLocalState(json);
-    return;
+  if (tg && tg.CloudStorage) {
+    tg.CloudStorage.setItem(STATE_KEY, json, () => {});
   }
-  safeTelegramSet(STATE_KEY, json, (err) => {
-    if (err) {
-      saveLocalState(json);
-    }
-  });
-}
-
-let storageInitAttempts = 0;
-function initApp() {
-  try { probeTelegramDebug(); } catch(e) {}
-  const tg = getTg();
-  if (!tg) {
-    storageInitAttempts += 1;
-    if (storageInitAttempts <= 50) {
-      setTimeout(initApp, 200);
-      return;
-    }
-    console.warn('Telegram WebApp not found after retries; falling back to local storage.');
-    loadLocalState();
-    return;
-  }
-
-  initTelegram();
-
-  if (hasTelegramStorageSupport()) {
-    loadState();
-    return;
-  }
-
-  console.warn('Telegram WebApp available but storage unsupported; falling back to local storage.');
-  loadLocalState();
+  try { localStorage.setItem(STATE_KEY, json); } catch(e) {}
 }
 
 function notify(msg) {
@@ -939,22 +722,16 @@ function notify(msg) {
 }
 
 function render() {
-  normalizeState();
-
   // Level & XP
-  const xp = Number(state.xp) || 0;
-  const xpMax = Number(state.xpMax) || 500;
-  const xpPercent = xpMax > 0 ? Math.min(100, Math.max(0, Math.round((xp / xpMax) * 100))) : 0;
   document.getElementById('levelNum').textContent = state.level;
-  document.getElementById('xpText').textContent = `${xp} / ${xpMax}`;
-  document.getElementById('xpFill').style.width = `${xpPercent}%`;
+  document.getElementById('xpText').textContent = `${state.xp} / ${state.xpMax}`;
+  document.getElementById('xpFill').style.width = `${(state.xp / state.xpMax) * 100}%`;
 
   // Stats
-  ['music','media','health','mind'].forEach(s => {
-    const parsedValue = Number(state.stats[s]);
-    const val = Number.isFinite(parsedValue) ? Math.min(100, Math.max(0, parsedValue)) : 0;
+  ['prod','media','body','mind'].forEach(s => {
+    const val = Math.min(100, state.stats[s]);
     document.getElementById(`stat-${s}`).textContent = val;
-    document.getElementById(`bar-${s}`).style.width = `${val}%`;
+    document.getElementById(`bar-${s}`).style.width = val + '%';
   });
 
   // Boss
@@ -968,19 +745,18 @@ function render() {
     const div = document.createElement('div');
     div.className = 'task-item' + (task.done ? ' done' : '');
     div.onclick = () => toggleTask(task.id);
-    const skillColors = { music: '#a855f7', media: '#22d3a0', health: '#f59e0b', mind: '#60a5fa' };
+    const skillColors = { prod: '#a855f7', media: '#22d3a0', body: '#f59e0b', mind: '#60a5fa' };
     div.innerHTML = `
       <div class="task-check">
         <svg class="checkmark" viewBox="0 0 10 8" fill="none">
           <path d="M1 4l3 3 5-6" stroke="#0a0a0f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </div>
-      <div class="task-health">
+      <div class="task-body">
         <div class="task-name">${task.name}</div>
         <div class="task-meta" style="color:${skillColors[task.skill]}">${task.skill.toUpperCase()}</div>
       </div>
       <div class="task-xp">+${task.xp}xp</div>
-      <button class="task-delete" onclick="deleteTask(event, ${task.id})">×</button>
     `;
     list.appendChild(div);
   });
@@ -991,13 +767,6 @@ function render() {
   logEl.innerHTML = entries.map(e =>
     `<div class="log-entry today"><span class="log-time">${e.time}</span>${e.text}</div>`
   ).join('') || '<div class="log-entry"><span class="log-time">—</span>Нет записей</div>';
-
-  // Reveal app after first successful render to avoid initial flicker
-  try {
-    if (document.body && document.body.classList.contains('loading')) {
-      document.body.classList.remove('loading');
-    }
-  } catch (e) {}
 }
 
 function addLog(text) {
@@ -1030,18 +799,6 @@ function toggleTask(id) {
   }
   saveState();
   render();
-}
-
-function deleteTask(event, id) {
-  event.stopPropagation();
-  const taskIndex = state.tasks.findIndex(t => t.id === id);
-  if (taskIndex === -1) return;
-  const taskName = state.tasks[taskIndex].name;
-  state.tasks.splice(taskIndex, 1);
-  addLog(`Удалено: ${taskName}`);
-  saveState();
-  render();
-  notify('Задача удалена');
 }
 
 function gainXP(amount, skill) {
@@ -1077,8 +834,7 @@ function addTask() {
   const skill = document.getElementById('skillSelect').value;
   const name = input.value.trim();
   if (!name) return;
-  const xpMap = { music: 15, media: 20, health: 10, mind: 12 };
-  ensureNextId();
+  const xpMap = { prod: 15, media: 20, body: 10, mind: 12 };
   state.tasks.push({ id: state.nextId++, name, skill, xp: xpMap[skill], done: false });
   input.value = '';
   document.getElementById('inputWrap').classList.remove('open');
@@ -1114,7 +870,8 @@ function completeQuest() {
   notify('⚡ КВЕСТ СДАН! +80 XP, Медиа прокачан');
 }
 
-initApp();
+loadState();
+if (!tg || !tg.CloudStorage) render();
 </script>
 </body>
 </html>
