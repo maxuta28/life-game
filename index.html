@@ -692,26 +692,39 @@ let state = {
 // otherwise fall back to localStorage.
 function loadState() {
   if (tg && tg.CloudStorage) {
-    tg.CloudStorage.getItem(STATE_KEY, (err, value) => {
-      if (!err && value) {
-        try { state = { ...state, ...JSON.parse(value) }; } catch(e) {}
-      }
-      render();
-    });
-  } else {
     try {
-      const saved = localStorage.getItem(STATE_KEY);
-      if (saved) state = { ...state, ...JSON.parse(saved) };
-    } catch(e) {}
+      if (typeof tg.CloudStorage.getItem === 'function') {
+        tg.CloudStorage.getItem(STORAGE_KEY, (err, value) => {
+          if (!err && value) {
+            try { state = { ...state, ...JSON.parse(value) }; } catch(e) {}
+          }
+          render();
+        });
+        return;
+      }
+    } catch(e) {
+      // fall through to localStorage
+    }
   }
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) state = { ...state, ...JSON.parse(saved) };
+  } catch(e) {}
+  render();
 }
 
 function saveState() {
   const json = JSON.stringify(state);
   if (tg && tg.CloudStorage) {
-    tg.CloudStorage.setItem(STATE_KEY, json, () => {});
+    try {
+      if (typeof tg.CloudStorage.setItem === 'function') {
+        tg.CloudStorage.setItem(STORAGE_KEY, json, () => {});
+      }
+    } catch(e) {
+      // ignore cloud storage errors
+    }
   }
-  try { localStorage.setItem(STATE_KEY, json); } catch(e) {}
+  try { localStorage.setItem(STORAGE_KEY, json); } catch(e) {}
 }
 
 function notify(msg) {
