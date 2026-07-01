@@ -769,7 +769,6 @@ function render() {
   state.tasks.forEach(task => {
     const div = document.createElement('div');
     div.className = 'task-item' + (task.done ? ' done' : '');
-    div.onclick = () => toggleTask(task.id);
     const skillColors = { music: '#a855f7', media: '#22d3a0', health: '#f59e0b', mind: '#60a5fa' };
     div.innerHTML = `
       <div class="task-check">
@@ -781,9 +780,20 @@ function render() {
         <div class="task-name">${task.name}</div>
         <div class="task-meta" style="color:${skillColors[task.skill]}">${task.skill.toUpperCase()}</div>
       </div>
-      <button class="task-delete" onclick="deleteTask(event, ${task.id})" aria-label="Удалить задачу">×</button>
+      <button class="task-delete" type="button" aria-label="Удалить задачу">×</button>
       <div class="task-xp">+${task.xp}xp</div>
     `;
+    div.addEventListener('click', (e) => {
+      if (e.target.closest('.task-delete')) return;
+      toggleTask(task.id);
+    });
+    const deleteBtn = div.querySelector('.task-delete');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteTask(e, task.id);
+      });
+    }
     list.appendChild(div);
   });
 
