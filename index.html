@@ -781,8 +781,18 @@ function render() {
         <div class="task-name">${task.name}</div>
         <div class="task-meta" style="color:${skillColors[task.skill]}">${task.skill.toUpperCase()}</div>
       </div>
-        <button class="task-delete" onclick="deleteTask(event, ${task.id})" aria-label="Удалить задачу">×</button>
-  if (state.log.length > 20) state.log.shift();
+      <button class="task-delete" onclick="deleteTask(event, ${task.id})" aria-label="Удалить задачу">×</button>
+      <div class="task-xp">+${task.xp}xp</div>
+    `;
+    list.appendChild(div);
+  });
+
+  // Log
+  const logEl = document.getElementById('logList');
+  const entries = [...state.log].reverse().slice(0, 5);
+  logEl.innerHTML = entries.map(e =>
+    `<div class="log-entry today"><span class="log-time">${e.time}</span>${e.text}</div>`
+  ).join('') || '<div class="log-entry"><span class="log-time">—</span>Нет записей</div>';
 }
 
 function toggleTask(id) {
